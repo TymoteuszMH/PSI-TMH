@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>System Obsługi Awarii IT - Serwis Olsztyn</title>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--primary: #1e3a8a;
+			--primary-hover: #1d4ed8;
+			--secondary: #64748b;
+			--background: #f8fafc;
+			--card-bg: #ffffff;
+			--text: #0f172a;
+			--border: #e2e8f0;
+
+			--status-nowe: #3b82f6;
+			--status-przyjete: #f59e0b;
+			--status-zdiagnozowane: #06b6d4;
+			--status-do-naprawy: #8b5cf6;
+			--status-naprawiona: #10b981;
+		}
+
+		* {
+			box-sizing: border-box;
+			font-family: 'Roboto', sans-serif;
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			background-color: var(--background);
+			color: var(--text);
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+		}
+
+		/* NAVBAR */
+		.navbar {
+			background-color: white;
+			border-bottom: 1px solid var(--border);
+			padding: 1rem 2rem;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			position: sticky;
+			top: 0;
+			z-index: 1000;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+		}
+
+		.navbar .brand {
+			font-size: 1.4rem;
+			font-weight: 700;
+			color: var(--primary);
+			cursor: pointer;
+		}
+
+		.navbar .nav-links {
+			display: flex;
+			gap: 1.5rem;
+			align-items: center;
+			list-style: none;
+		}
+
+		.navbar .nav-links a {
+			text-decoration: none;
+			color: var(--text);
+			font-weight: 500;
+			transition: color 0.2s;
+			cursor: pointer;
+		}
+
+		.navbar .nav-links a:hover {
+			color: var(--primary);
+		}
+
+		.navbar .btn-nav {
+			background-color: var(--primary);
+			color: white !important;
+			padding: 0.5rem 1rem;
+			border-radius: 4px;
+		}
+
+		.navbar .btn-nav:hover {
+			background-color: var(--primary-hover);
+		}
+
+		/* LANDING PAGE */
+		.hero-section {
+			max-width: 1200px;
+			margin: 0 auto;
+			padding: 4rem 2rem;
+			text-align: center;
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.hero-section h1 {
+			font-size: 3rem;
+			color: var(--primary);
+			margin-bottom: 1rem;
+			font-weight: 700;
+		}
+
+		.hero-section p {
+			font-size: 1.2rem;
+			color: var(--secondary);
+			max-width: 600px;
+			margin-bottom: 2.5rem;
+			line-height: 1.6;
+		}
+
+		.hero-buttons {
+			display: flex;
+			gap: 1.5rem;
+		}
+
+		.btn-large {
+			padding: 1rem 2rem;
+			font-size: 1.1rem;
+			font-weight: 700;
+			border: none;
+			border-radius: 6px;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+
+		.btn-large.main {
+			background-color: var(--primary);
+			color: white;
+			box-shadow: 0 4px 6px rgba(30, 58, 138, 0.2);
+		}
+
+		.btn-large.main:hover {
+			background-color: var(--primary-hover);
+			transform: translateY(-2px);
+		}
+
+		.btn-large.outline {
+			background-color: transparent;
+			color: var(--primary);
+			border: 2px solid var(--primary);
+		}
+
+		.btn-large.outline:hover {
+			background-color: #eff6ff;
+			transform: translateY(-2px);
+		}
+
+		/* FORMULARZE (LOGOWANIE / REJESTRACJA) */
+		.auth-container {
+			max-width: 420px;
+			margin: 40px auto;
+			padding: 2.5rem;
+			background: var(--card-bg);
+			border-radius: 8px;
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+			border: 1px solid var(--border);
+		}
+
+		.auth-container h2 {
+			margin-bottom: 0.5rem;
+			color: var(--primary);
+		}
+
+		.alert-msg {
+			padding: 0.6rem;
+			border-radius: 4px;
+			font-size: 0.9rem;
+			margin-bottom: 1rem;
+			display: none;
+		}
+
+		.alert-error {
+			color: #dc2626;
+			background: #fef2f2;
+			border: 1px solid #fca5a5;
+		}
+
+		.alert-success {
+			color: #15803d;
+			background: #dcfce7;
+			border: 1px solid #86efac;
+		}
+
+		.auth-link {
+			text-align: center;
+			margin-top: 1.2rem;
+			font-size: 0.9rem;
+		}
+
+		.auth-link a {
+			color: var(--primary);
+			font-weight: bold;
+			text-decoration: none;
+		}
+
+		.auth-link a:hover {
+			text-decoration: underline;
+		}
+
+		/* PANEL APLIKACJI */
+		.app-layout {
+			display: grid;
+			grid-template-columns: 260px 1fr;
+			min-height: calc(100vh - 65px);
+			flex: 1;
+		}
+
+		sidebar {
+			background-color: #0f172a;
+			color: white;
+			padding: 1.5rem;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+		}
+
+		sidebar .nav-links-vertical {
+			list-style: none;
+			margin-top: 1.5rem;
+		}
+
+		sidebar .nav-links-vertical li {
+			padding: 0.75rem 1rem;
+			margin-bottom: 0.5rem;
+			border-radius: 4px;
+			cursor: pointer;
+			transition: background 0.2s;
+			font-weight: 500;
+		}
+
+		sidebar .nav-links-vertical li:hover,
+		sidebar .nav-links-vertical li.active {
+			background-color: var(--primary);
+		}
+
+		main {
+			padding: 2rem;
+			overflow-y: auto;
+			background-color: var(--background);
+		}
+
+		.page-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			border-bottom: 1px solid var(--border);
+			padding-bottom: 1rem;
+			margin-bottom: 2rem;
+		}
+
+		/* KOMPONENTY UI */
+		.card {
+			background: var(--card-bg);
+			padding: 1.5rem;
+			border-radius: 8px;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+			margin-bottom: 1.5rem;
+			border: 1px solid var(--border);
+		}
+
+		.grid-2 {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 1.5rem;
+		}
+
+		form {
+			display: flex;
+			flex-direction: column;
+			gap: 1.2rem;
+		}
+
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		label {
+			font-weight: 600;
+			font-size: 0.9rem;
+		}
+
+		input,
+		textarea,
+		select {
+			padding: 0.65rem;
+			border: 1px solid var(--border);
+			border-radius: 4px;
+			font-size: 1rem;
+			transition: border-color 0.2s;
+		}
+
+		input:focus,
+		textarea:focus,
+		select:focus {
+			outline: none;
+			border-color: var(--primary);
+		}
+
+		button.btn-submit {
+			background-color: var(--primary);
+			color: white;
+			border: none;
+			padding: 0.75rem 1.25rem;
+			border-radius: 4px;
+			cursor: pointer;
+			font-weight: bold;
+			font-size: 1rem;
+		}
+
+		button.btn-submit:hover {
+			background-color: var(--primary-hover);
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 1rem;
+		}
+
+		th,
+		td {
+			padding: 0.85rem 1rem;
+			text-align: left;
+			border-bottom: 1px solid var(--border);
+		}
+
+		th {
+			background-color: #f1f5f9;
+			font-weight: 600;
+		}
+
+		.badge {
+			padding: 0.25rem 0.6rem;
+			border-radius: 4px;
+			font-size: 0.8rem;
+			font-weight: bold;
+			color: white;
+			display: inline-block;
+		}
+
+		.badge.nowe {
+			background-color: var(--status-nowe);
+		}
+
+		.badge.przyjete {
+			background-color: var(--status-przyjete);
+		}
+
+		.badge.zdiagnozowane {
+			background-color: var(--status-zdiagnozowane);
+		}
+
+		.badge.do_naprawy {
+			background-color: var(--status-do-naprawy);
+		}
+
+		.badge.naprawiona {
+			background-color: var(--status-naprawiona);
+		}
+
+		.hidden {
+			display: none !important;
+		}
+
+		.action-btn {
+			padding: 0.45rem 0.85rem;
+			font-size: 0.85rem;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+			color: white;
+			background-color: var(--primary);
+			font-weight: bold;
+		}
+
+		.action-btn:hover {
+			opacity: 0.9;
+		}
+	</style>
+</head>
+
+<body>
+
+	<nav class="navbar">
+		<div class="brand" onclick="navigateTo('home')">Serwis IT Olsztyn</div>
+		<ul class="nav-links">
+			<li><a onclick="navigateTo('home')">Strona Główna</a></li>
+			<li><a onclick="handleZglosAwarieLink()">Zgłoś awarię</a></li>
+			<li id="nav-panel-link" class="hidden"><a onclick="navigateTo('panel')">Mój Panel</a></li>
+			<li id="nav-login-item"><a onclick="navigateTo('login')" class="btn-nav">Zaloguj się</a></li>
+			<li id="nav-logout-item" class="hidden"><a onclick="logout()" style="color: #dc2626 !important;">Wyloguj</a>
+			</li>
+		</ul>
+	</nav>
+
+	<div id="view-home" class="hero-section">
+		<h1>Szybka Pomoc i Naprawa Awarii IT</h1>
+		<p>Profesjonalny serwis komputerowy i sieciowy na terenie Olsztyna. Przyjmujemy zgłoszenia, diagnozujemy usterki
+			i przywracamy stabilność Twojej infrastruktury informatycznej.</p>
+		<div class="hero-buttons">
+			<button class="btn-large main" onclick="handleZglosAwarieLink()">Zgłoś awarię sprzętu</button>
+			<button id="hero-login-btn" class="btn-large outline" onclick="navigateTo('login')">Zaloguj się do
+				systemu</button>
+		</div>
+	</div>
+
+	<div id="view-login" class="auth-container hidden">
+		<h2>Zaloguj się</h2>
+		<p style="color: var(--secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Wprowadź dane dostępowe do swojego
+			konta.</p>
+		<div id="login-error-msg" class="alert-msg alert-error">Nieprawidłowy e-mail lub hasło!</div>
+		<form id="login-form">
+			<div class="form-group">
+				<label for="login-email">Adres E-mail:</label>
+				<input type="email" id="login-email" placeholder="np. klient@serwis.pl" required>
+			</div>
+			<div class="form-group">
+				<label for="login-password">Hasło:</label>
+				<input type="password" id="login-password" placeholder="••••••••" required>
+			</div>
+			<button type="submit" class="btn-submit">Zaloguj się</button>
+			<div class="auth-link">
+				Nie masz konta? <a href="#" onclick="navigateTo('register'); return false;">Zarejestruj się tutaj</a>
+			</div>
+		</form>
+	</div>
+
+	<div id="view-register" class="auth-container hidden">
+		<h2>Utwórz konto Klienta</h2>
+		<p style="color: var(--secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Załóż konto, aby móc zgłaszać i
+			śledzić swoje awarie.</p>
+		<div id="register-error-msg" class="alert-msg alert-error"></div>
+		<div id="register-success-msg" class="alert-msg alert-success">Konto utworzone! Zaraz zostaniesz
+			przekierowany...</div>
+		<form id="register-form">
+			<div class="grid-2" style="gap: 1rem;">
+				<div class="form-group">
+					<label for="reg-imie">Imię:</label>
+					<input type="text" id="reg-imie" required>
+				</div>
+				<div class="form-group">
+					<label for="reg-nazwisko">Nazwisko:</label>
+					<input type="text" id="reg-nazwisko" required>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="reg-telefon">Telefon kontaktowy:</label>
+				<input type="tel" id="reg-telefon" placeholder="np. 500-600-700" required>
+			</div>
+			<div class="form-group">
+				<label for="reg-email">Adres E-mail:</label>
+				<input type="email" id="reg-email" required>
+			</div>
+			<div class="form-group">
+				<label for="reg-password">Hasło:</label>
+				<input type="password" id="reg-password" required minlength="4">
+			</div>
+			<button type="submit" class="btn-submit">Zarejestruj się</button>
+			<div class="auth-link">
+				Masz już konto? <a href="#" onclick="navigateTo('login'); return false;">Przejdź do logowania</a>
+			</div>
+		</form>
+	</div>
+
+	<div id="app-container" class="app-layout hidden">
+		<sidebar>
+			<div>
+				<h3 style="margin: 0; font-size: 1.1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;"
+					id="user-display-role">Panele</h3>
+				<ul class="nav-links-vertical" id="sidebar-menu">
+				</ul>
+			</div>
+			<div style="font-size: 0.85rem; color: var(--secondary)">System v3.0 (Rejestracja)</div>
+		</sidebar>
+
+		<main>
+			<div class="page-header">
+				<h1 id="page-title">Pulpit roboczy</h1>
+				<div>Użytkownik: <strong id="user-display-name"></strong></div>
+			</div>
+
+			<div id="page-klient-zglos" class="page-view hidden">
+				<div class="card">
+					<h2>Formularz Rejestracji Awarii (PU. Zgłoś Awarię)</h2>
+					<form id="form-zgloszenie">
+						<div class="form-group">
+							<label for="zglos-opis">Opis problemu oraz zachowanie sprzętu/systemu:</label>
+							<textarea id="zglos-opis" rows="4" placeholder="Opisz szczegółowo usterkę..."
+								required></textarea>
+						</div>
+						<div class="grid-2">
+							<div class="form-group">
+								<label for="zglos-lokalizacja">Lokalizacja sprzętu (adres/pokój):</label>
+								<input type="text" id="zglos-lokalizacja" placeholder="np. Olsztyn, ul. Kościuszki 12"
+									required>
+							</div>
+							<div class="form-group">
+								<label for="zglos-priorytet">Wymagany priorytet zgłoszenia:</label>
+								<select id="zglos-priorytet">
+									<option value="Niski">Niski</option>
+									<option value="Standardowy" selected>Standardowy</option>
+									<option value="Krytyczny">Krytyczny</option>
+								</select>
+							</div>
+						</div>
+						<button type="submit" class="btn-submit">Prześlij zgłoszenie do serwisu</button>
+					</form>
+				</div>
+			</div>
+
+			<div id="page-lista-zgloszen" class="page-view hidden">
+				<div class="card">
+					<h2>Spis zgłoszeń i zarządzanie workflow</h2>
+					<div style="overflow-x: auto;">
+						<table>
+							<thead>
+								<tr>
+									<th>ID/Numer</th>
+									<th>Data wpisu</th>
+									<th>Opis problemu</th>
+									<th>Lokalizacja</th>
+									<th>Priorytet</th>
+									<th>Status systemowy</th>
+									<th>Operacje</th>
+								</tr>
+							</thead>
+							<tbody id="table-zgloszenia-body">
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<div id="panel-operacyjny" class="card hidden">
+				<h2 id="panel-operacyjny-tytul">Panel akcji</h2>
+				<div id="panel-operacyjny-tresc"></div>
+			</div>
+
+			<div id="page-admin" class="page-view hidden">
+				<div class="card">
+					<h2>Administracja Strukturą Systemu</h2>
+					<p style="margin-bottom: 1rem;">Podgląd tabel bazy danych zdefiniowanych w relacyjnym modelu encji
+						(Sprawozdanie 05).</p>
+					<div class="grid-2">
+						<div class="card" style="background:#f8fafc">
+							<h3>Baza danych: Liczba rekordów</h3>
+							<p style="margin-top:0.5rem">Tabela <code>Uzytkownik</code>: <span
+									id="stat-uzytkownicy-count">4</span></p>
+							<p>Tabela <code>Zgłoszenie</code>: <span id="stat-zgloszenia-count">0</span> rekordów</p>
+							<p>Tabela <code>Rozwiazanie</code>: <span id="stat-rozwiazania-count">0</span> rekordów</p>
+						</div>
+						<div class="card" style="background:#f8fafc">
+							<h3>Magazyn serwisowy (Zasoby)</h3>
+							<p style="margin-top:0.5rem">Wkrętaki automatyczne: 10 szt.</p>
+							<p>Zestawy zaciskarek LAN: 10 szt.</p>
+							<p>Skrętka Ethernet RJ45 Kat. 5e: ~500m</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</main>
+	</div>
+
+	<script>
+		// --- INICJALIZACJA BAZY UŻYTKOWNIKÓW W LOCALSTORAGE ---
+		let uzytkownicy_db = JSON.parse(localStorage.getItem('serwis_uzytkownicy'));
+		if (!uzytkownicy_db) {
+			uzytkownicy_db = {
+				"klient@serwis.pl": { id: "klient", name: "Jan Kowalski", role: "Klient", pass: "test1234", telefon: "500-600-700" },
+				"pok@serwis.pl": { id: "pok", name: "Anna Nowak", role: "Pracownik Obsługi Klienta", pass: "test1234" },
+				"serwisant@serwis.pl": { id: "serwisant", name: "Tomasz Wiśniewski", role: "Serwisant", pass: "test1234" },
+				"admin@serwis.pl": { id: "admin", name: "Marek Szef", role: "Administrator", pass: "test1234" }
+			};
+			localStorage.setItem('serwis_uzytkownicy', JSON.stringify(uzytkownicy_db));
+		}
+
+		// --- STAN SYSTEMU ---
+		let state = {
+			currentUser: null,
+			redirectTargetAfterLogin: null,
+			zgloszenia: JSON.parse(localStorage.getItem('serwis_zgloszenia')) || [],
+			rozwiazania: JSON.parse(localStorage.getItem('serwis_rozwiazania')) || []
+		};
+
+		// --- NAWIGACJA (ROUTING) ---
+		function navigateTo(viewId) {
+			document.getElementById('view-home').classList.add('hidden');
+			document.getElementById('view-login').classList.add('hidden');
+			document.getElementById('view-register').classList.add('hidden');
+			document.getElementById('app-container').classList.add('hidden');
+			document.getElementById('panel-operacyjny').classList.add('hidden');
+
+			if (viewId === 'home') {
+				document.getElementById('view-home').classList.remove('hidden');
+			} else if (viewId === 'login') {
+				document.getElementById('view-login').classList.remove('hidden');
+				document.getElementById('login-error-msg').style.display = 'none';
+			} else if (viewId === 'register') {
+				document.getElementById('view-register').classList.remove('hidden');
+				document.getElementById('register-error-msg').style.display = 'none';
+				document.getElementById('register-success-msg').style.display = 'none';
+			} else if (viewId === 'panel') {
+				if (!state.currentUser) {
+					navigateTo('login');
+					return;
+				}
+				document.getElementById('app-container').classList.remove('hidden');
+				if (state.currentUser.role === 'Klient') switchInternalPage('page-klient-zglos', 'Nowe zgłoszenie awarii');
+				else if (state.currentUser.id === 'admin') switchInternalPage('page-admin', 'Zarządzanie strukturą i bazą');
+				else switchInternalPage('page-lista-zgloszen', 'Zarządzanie zgłoszeniami serwisu');
+			}
+		}
+
+		function handleZglosAwarieLink() {
+			if (!state.currentUser) {
+				state.redirectTargetAfterLogin = 'zglos';
+				navigateTo('login');
+			} else {
+				if (state.currentUser.role === 'Klient') {
+					navigateTo('panel');
+					switchInternalPage('page-klient-zglos', 'Nowe zgłoszenie awarii');
+				} else {
+					alert("Tylko użytkownicy z rolą 'Klient' mogą zgłaszać usterki.");
+					navigateTo('panel');
+				}
+			}
+		}
+
+		function switchInternalPage(pageId, pageTitle) {
+			document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
+			document.getElementById('panel-operacyjny').classList.add('hidden');
+			document.getElementById(pageId).classList.remove('hidden');
+			document.getElementById('page-title').innerText = pageTitle;
+
+			if (pageId === 'page-lista-zgloszen') renderZgloszeniaTable();
+			if (pageId === 'page-admin') renderAdminStats();
+		}
+
+		// --- REJESTRACJA NOWEGO KLIENTA ---
+		document.getElementById('register-form').addEventListener('submit', function (e) {
+			e.preventDefault();
+			const imie = document.getElementById('reg-imie').value.trim();
+			const nazwisko = document.getElementById('reg-nazwisko').value.trim();
+			const telefon = document.getElementById('reg-telefon').value.trim();
+			const email = document.getElementById('reg-email').value.trim();
+			const pass = document.getElementById('reg-password').value;
+
+			const errorBanner = document.getElementById('register-error-msg');
+			const successBanner = document.getElementById('register-success-msg');
+
+			// Sprawdzenie czy email już istnieje w bazie
+			if (uzytkownicy_db[email]) {
+				errorBanner.innerText = "Konto z tym adresem e-mail już istnieje!";
+				errorBanner.style.display = 'block';
+				successBanner.style.display = 'none';
+				return;
+			}
+
+			// Utworzenie obiektu nowego klienta
+			const nowyId = 'klient_' + Date.now();
+			uzytkownicy_db[email] = {
+				id: nowyId,
+				name: `${imie} ${nazwisko}`,
+				role: "Klient",
+				pass: pass,
+				telefon: telefon
+			};
+
+			// Zapisz zaktualizowaną bazę do localStorage
+			localStorage.setItem('serwis_uzytkownicy', JSON.stringify(uzytkownicy_db));
+
+			errorBanner.style.display = 'none';
+			successBanner.style.display = 'block';
+			this.reset();
+
+			// Automatyczne przejście do logowania po 1.5 sekundy z uzupełnionym emailem
+			setTimeout(() => {
+				document.getElementById('login-email').value = email;
+				navigateTo('login');
+			}, 1500);
+		});
+
+		// --- LOGOWANIE ---
+		document.getElementById('login-form').addEventListener('submit', function (e) {
+			e.preventDefault();
+			const email = document.getElementById('login-email').value.trim();
+			const pass = document.getElementById('login-password').value;
+			const errorBanner = document.getElementById('login-error-msg');
+
+			if (uzytkownicy_db[email] && uzytkownicy_db[email].pass === pass) {
+				state.currentUser = uzytkownicy_db[email];
+				errorBanner.style.display = 'none';
+				this.reset();
+
+				document.getElementById('nav-login-item').classList.add('hidden');
+				document.getElementById('nav-logout-item').classList.remove('hidden');
+				document.getElementById('nav-panel-link').classList.remove('hidden');
+				document.getElementById('hero-login-btn').classList.add('hidden');
+
+				document.getElementById('user-display-name').innerText = state.currentUser.name;
+				document.getElementById('user-display-role').innerText = `Rola: ${state.currentUser.role}`;
+
+				setupSidebarMenu();
+
+				if (state.redirectTargetAfterLogin === 'zglos' && state.currentUser.role === 'Klient') {
+					state.redirectTargetAfterLogin = null;
+					navigateTo('panel');
+					switchInternalPage('page-klient-zglos', 'Nowe zgłoszenie awarii');
+				} else {
+					state.redirectTargetAfterLogin = null;
+					navigateTo('panel');
+				}
+			} else {
+				errorBanner.style.display = 'block';
+			}
+		});
+
+		function logout() {
+			state.currentUser = null;
+			document.getElementById('nav-login-item').classList.remove('hidden');
+			document.getElementById('nav-logout-item').classList.add('hidden');
+			document.getElementById('nav-panel-link').classList.add('hidden');
+			document.getElementById('hero-login-btn').classList.remove('hidden');
+			navigateTo('home');
+		}
+
+		function setupSidebarMenu() {
+			const menu = document.getElementById('sidebar-menu');
+			menu.innerHTML = '';
+
+			let links = [];
+			if (state.currentUser.role === 'Klient') {
+				links = [
+					{ id: 'page-klient-zglos', label: 'Zgłoś nową awarię', title: 'Formularz rejestracji' },
+					{ id: 'page-lista-zgloszen', label: 'Moje zgłoszenia', title: 'Statusy zgłoszonych awarii' }
+				];
+			} else if (state.currentUser.role === 'Pracownik Obsługi Klienta') {
+				links = [{ id: 'page-lista-zgloszen', label: 'Wszystkie zgłoszenia', title: 'Zarządzanie Zgłoszeniami (POK)' }];
+			} else if (state.currentUser.role === 'Serwisant') {
+				links = [{ id: 'page-lista-zgloszen', label: 'Zlecenia warsztatowe', title: 'Baza zgłoszeń do diagnostyki' }];
+			} else if (state.currentUser.role === 'Administrator') {
+				links = [{ id: 'page-admin', label: 'Baza Danych (Encje)', title: 'Struktura relacyjna DBMS' }];
+			}
+
+			links.forEach(link => {
+				const li = document.createElement('li');
+				li.innerText = link.label;
+				li.onclick = () => {
+					document.querySelectorAll('.nav-links-vertical li').forEach(el => el.classList.remove('active'));
+					li.classList.add('active');
+					switchInternalPage(link.id, link.title);
+				};
+				menu.appendChild(li);
+			});
+		}
+
+		// --- POZOSTAŁE FUNKCJE SYSTEMU (Zapis zgłoszeń i renderowanie tabeli) ---
+		function saveData() {
+			localStorage.setItem('serwis_zgloszenia', JSON.stringify(state.zgloszenia));
+			localStorage.setItem('serwis_rozwiazania', JSON.stringify(state.rozwiazania));
+		}
+
+		document.getElementById('form-zgloszenie').addEventListener('submit', function (e) {
+			e.preventDefault();
+			const noweZgloszenie = {
+				id: Date.now(),
+				numer: `ZG/${new Date().getFullYear()}/05/${String(state.zgloszenia.length + 1).padStart(3, '0')}`,
+				data_zgloszenia: new Date().toISOString().split('T')[0],
+				opis: document.getElementById('zglos-opis').value,
+				lokalizacja: document.getElementById('zglos-lokalizacja').value,
+				priorytet: document.getElementById('zglos-priorytet').value,
+				status: "Nowe",
+				wstepny_koszt: 0,
+				raport_koncowy: "",
+				id_klienta: state.currentUser.id
+			};
+
+			state.zgloszenia.push(noweZgloszenie);
+			saveData();
+			this.reset();
+			alert(`Zgłoszenie zarejestrowane pod numerem: ${noweZgloszenie.numer}`);
+			switchInternalPage('page-lista-zgloszen', 'Statusy zgłoszonych awarii');
+		});
+
+		function renderZgloszeniaTable() {
+			const tbody = document.getElementById('table-zgloszenia-body');
+			tbody.innerHTML = '';
+
+			let wyswietlane = state.zgloszenia;
+			if (state.currentUser.role === 'Klient') {
+				wyswietlane = state.zgloszenia.filter(z => z.id_klienta === state.currentUser.id);
+			}
+
+			wyswietlane.forEach(z => {
+				const tr = document.createElement('tr');
+				let akcjeHtml = '-';
+
+				if (state.currentUser.role === 'Pracownik Obsługi Klienta' && z.status === 'Nowe') {
+					akcjeHtml = `<button class="action-btn" onclick="pokPrzyjmijZgloszenie(${z.id})">Przyjmij zgłoszenie</button>`;
+				} else if (state.currentUser.role === 'Serwisant' && z.status === 'Przyjęte') {
+					akcjeHtml = `<button class="action-btn" style="background:#0284c7" onclick="serwisantDiagnozuj(${z.id})">Wykonaj diagnozę</button>`;
+				} else if (state.currentUser.role === 'Klient' && z.status === 'Zdiagnozowane') {
+					akcjeHtml = `<button class="action-btn" style="background:var(--status-do-naprawy)" onclick="klientWybierzRozwiazanie(${z.id})">Wybierz rozwiązanie</button>`;
+				} else if (state.currentUser.role === 'Serwisant' && z.status === 'Do naprawy') {
+					akcjeHtml = `<button class="action-btn" style="background:var(--status-naprawiona)" onclick="serwisantRozwiaz(${z.id})">Zamknij awarię</button>`;
+				} else if (z.status === 'Naprawiona') {
+					akcjeHtml = `<button class="action-btn" style="background:var(--secondary)" onclick="pokazRaport(${z.id})">Szczegóły / Raport</button>`;
+				}
+
+				tr.innerHTML = `
+                    <td><strong>${z.numer}</strong></td>
+                    <td>${z.data_zgloszenia}</td>
+                    <td>${z.opis.substring(0, 40)}${z.opis.length > 40 ? '...' : ''}</td>
+                    <td>${z.lokalizacja}</td>
+                    <td>${z.priorytet}</td>
+                    <td><span class="badge ${z.status.toLowerCase().replace(' ', '_')}">${z.status}</span></td>
+                    <td>${akcjeHtml}</td>
+                `;
+				tbody.appendChild(tr);
+			});
+		}
+
+		// POK: Przyjmowanie
+		function pokPrzyjmijZgloszenie(id) {
+			const panel = document.getElementById('panel-operacyjny');
+			const zgloszenie = state.zgloszenia.find(z => z.id === id);
+			document.getElementById('panel-operacyjny-tytul').innerText = `Akceptacja wniosku: ${zgloszenie.numer}`;
+			panel.classList.remove('hidden');
+			document.getElementById('panel-operacyjny-tresc').innerHTML = `
+                <form onsubmit="zapiszPrzyjecie(event, ${id})">
+                    <p><strong>Opis:</strong> ${zgloszenie.opis}</p>
+                    <div class="form-group"><label>Zryczałtowany koszt diagnozy (PLN):</label><input type="number" id="pok-koszt" value="120" required></div>
+                    <button type="submit" class="btn-submit">Zatwierdź i przekaż na warsztat</button>
+                </form>
+            `;
+			window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+		}
+		function zapiszPrzyjecie(e, id) {
+			e.preventDefault();
+			const zgloszenie = state.zgloszenia.find(z => z.id === id);
+			zgloszenie.status = "Przyjęte";
+			zgloszenie.wstepny_koszt = parseFloat(document.getElementById('pok-koszt').value);
+			saveData(); renderZgloszeniaTable(); document.getElementById('panel-operacyjny').classList.add('hidden');
+		}
+
+		// Serwisant: Diagnoza
+		function serwisantDiagnozuj(id) {
+			const panel = document.getElementById('panel-operacyjny');
+			const zgloszenie = state.zgloszenia.find(z => z.id === id);
+			document.getElementById('panel-operacyjny-tytul').innerText = `Karta diagnostyczna: ${zgloszenie.numer}`;
+			panel.classList.remove('hidden');
+			document.getElementById('panel-operacyjny-tresc').innerHTML = `
+                <div>
+                    <div style="background:#f1f5f9; padding: 1.2rem; margin-bottom:1.5rem; border-radius:6px; border:1px solid var(--border)">
+                        <div class="form-group"><label>Sposób naprawy:</label><input type="text" id="diag-opis" placeholder="np. Wymiana zasilacza"></div>
+                        <div class="grid-2" style="margin-top:0.5rem">
+                            <div class="form-group"><label>Koszt brutto (PLN):</label><input type="number" id="diag-koszt" placeholder="320"></div>
+                            <div class="form-group"><label>Czas realizacji:</label><input type="text" id="diag-czas" placeholder="np. 4 godziny"></div>
+                        </div>
+                        <button type="button" class="action-btn" style="margin-top:0.8rem; background:#475569" onclick="dodajWariantDoPamieci(${id})">Dodaj wariant</button>
+                    </div>
+                    <h4>Wyceny do weryfikacji klienta:</h4>
+                    <ul id="lista-propozycji-serwisu" style="margin-bottom:1rem; padding-left:1.2rem;"></ul>
+                    <button type="button" class="btn-submit" style="width:100%; background:var(--status-zdiagnozowane)" onclick="zakonczDiagnoze(${id})">Wyślij do decyzji Klienta</button>
+                </div>
+            `;
+			renderPropozycjeList(id); window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+		}
+		function renderPropozycjeList(id_zgloszenia) {
+			const ul = document.getElementById('lista-propozycji-serwisu'); ul.innerHTML = '';
+			const filtrowane = state.rozwiazania.filter(r => r.id_zgloszenia === id_zgloszenia);
+			if (filtrowane.length === 0) ul.innerHTML = '<li style="color:var(--secondary)">Brak wariantów.</li>';
+			filtrowane.forEach(r => ul.innerHTML += `<li><strong>${r.opis}</strong> — ${r.koszt} PLN, ${r.czas_realizacji}</li>`);
+		}
+		function dodajWariantDoPamieci(id_zgloszenia) {
+			const o = document.getElementById('diag-opis').value, k = parseFloat(document.getElementById('diag-koszt').value), c = document.getElementById('diag-czas').value;
+			if (!o || !k || !c) return alert("Wprowadź wszystkie dane wariantu!");
+			state.rozwiazania.push({ id_rozwiazania: Date.now(), id_zgloszenia: id_zgloszenia, opis: o, koszt: k, czas_realizacji: c, czy_wybrane: false });
+			saveData(); renderPropozycjeList(id_zgloszenia);
+		}
+		function zakonczDiagnoze(id) {
+			if (state.rozwiazania.filter(r => r.id_zgloszenia === id).length === 0) return alert("Dodaj chociaż jedną propozycję!");
+			state.zgloszenia.find(z => z.id === id).status = "Zdiagnozowane";
+			saveData(); renderZgloszeniaTable(); document.getElementById('panel-operacyjny').classList.add('hidden');
+		}
+
+		// Klient: Wybór rozwiązania
+		function klientWybierzRozwiazanie(id) {
+			const panel = document.getElementById('panel-operacyjny');
+			const warianty = state.rozwiazania.filter(r => r.id_zgloszenia === id);
+			document.getElementById('panel-operacyjny-tytul').innerText = `Wybierz rozwiązanie`;
+			panel.classList.remove('hidden');
+			let html = '';
+			warianty.forEach(w => {
+				html += `<div class="card" style="border-left: 4px solid var(--primary); background:#fafafa; margin-bottom:1rem;">
+                            <h4>${w.opis}</h4><p>Koszt: <strong>${w.koszt} PLN</strong> | Czas: <strong>${w.czas_realizacji}</strong></p>
+                            <button type="button" class="action-btn" style="background:var(--status-do-naprawy)" onclick="zatwierdzWyborKlienta(${id}, ${w.id_rozwiazania})">Akceptuję ten wariant</button>
+                        </div>`;
+			});
+			document.getElementById('panel-operacyjny-tresc').innerHTML = html;
+			window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+		}
+		function zatwierdzWyborKlienta(id_z, id_r) {
+			state.rozwiazania.forEach(r => { if (r.id_zgloszenia === id_z) r.czy_wybrane = false; });
+			state.rozwiazania.find(r => r.id_rozwiazania === id_r).czy_wybrane = true;
+			state.zgloszenia.find(z => z.id === id_z).status = "Do naprawy";
+			saveData(); renderZgloszeniaTable(); document.getElementById('panel-operacyjny').classList.add('hidden');
+		}
+
+		// Serwisant: Rozwiąż
+		function serwisantRozwiaz(id) {
+			const panel = document.getElementById('panel-operacyjny');
+			document.getElementById('panel-operacyjny-tytul').innerText = `Zamknięcie awarii`;
+			panel.classList.remove('hidden');
+			document.getElementById('panel-operacyjny-tresc').innerHTML = `
+                <form onsubmit="zapiszRaport(event, ${id})">
+                    <div class="form-group"><label>Raport końcowy:</label><textarea id="serw-raport" rows="4" required></textarea></div>
+                    <button type="submit" class="btn-submit" style="background:var(--status-naprawiona)">Oznacz jako: Naprawiona</button>
+                </form>
+            `;
+			window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+		}
+		function zapiszRaport(e, id) {
+			e.preventDefault();
+			const z = state.zgloszenia.find(z => z.id === id);
+			z.status = "Naprawiona"; z.raport_koncowy = document.getElementById('serw-raport').value;
+			saveData(); renderZgloszeniaTable(); document.getElementById('panel-operacyjny').classList.add('hidden');
+		}
+
+		// Raport
+		function pokazRaport(id) {
+			const z = state.zgloszenia.find(z => z.id === id);
+			const w = state.rozwiazania.find(r => r.id_zgloszenia === id && r.czy_wybrane === true);
+			document.getElementById('panel-operacyjny-tytul').innerText = `Metryka zgłoszenia: ${z.numer}`;
+			document.getElementById('panel-operacyjny').classList.remove('hidden');
+			document.getElementById('panel-operacyjny-tresc').innerHTML = `
+                <div style="line-height:1.6">
+                    <p><strong>Wybrane rozwiązanie:</strong> ${w ? w.opis : 'Brak'}</p>
+                    <p><strong>Koszt:</strong> ${w ? w.koszt : z.wstepny_koszt} PLN</p>
+                    <div style="background:#f8fafc; border-left:4px solid var(--status-naprawiona); padding:1rem; margin-top:1rem;">
+                        <p><strong>Raport serwisanta:</strong><br/>${z.raport_koncowy}</p>
+                    </div>
+                </div>
+            `;
+			window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+		}
+
+		function renderAdminStats() {
+			document.getElementById('stat-uzytkownicy-count').innerText = Object.keys(uzytkownicy_db).length;
+			document.getElementById('stat-zgloszenia-count').innerText = state.zgloszenia.length;
+			document.getElementById('stat-rozwiazania-count').innerText = state.rozwiazania.length;
+		}
+	</script>
+</body>
+
+</html>
